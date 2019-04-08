@@ -2,6 +2,7 @@ class Inverter:
 
     def __init__(self, input_value):
         self.__input = input_value
+        self.__calculate_output()
 
     def __calculate_output(self):
         if self.__input is 1:
