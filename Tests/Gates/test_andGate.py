@@ -23,5 +23,10 @@ class TestAndGate(TestCase):
     def test_set_input(self):
         inputs = {'il': 1, 'i2': 1}
         and_gate = AndGate(inputs)
-        and_gate.set_input(0, 0)
+        and_gate.set_input('i1', 0)
         self.assertEqual(and_gate.get_output(), 0)
+
+    def test_get_input(self):
+        inputs = {'il': 0, 'i2': 1}
+        and_gate = AndGate(inputs)
+        self.assertEqual(and_gate.get_input('il'), 0)

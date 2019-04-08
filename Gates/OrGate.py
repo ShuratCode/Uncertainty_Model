@@ -21,7 +21,7 @@ class OrGate(Gate):
     def get_inputs(self):
         return self.__inputs
 
-    def get_input(self, index: int):
+    def get_input(self, index: str):
         return self.__inputs.get(index)
 
     def set_input(self, index: str, value: int):

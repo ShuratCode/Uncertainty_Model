@@ -25,3 +25,8 @@ class TestOrGate(TestCase):
         or_gate = OrGate(inputs)
         or_gate.set_input('i2', 0)
         self.assertEqual(or_gate.get_output(), 0)
+
+    def test_get_input(self):
+        inputs = {'il': 0, 'i2': 1}
+        or_gate = OrGate(inputs)
+        self.assertEqual(or_gate.get_input('il'), 0)
