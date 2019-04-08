@@ -1,4 +1,7 @@
-class Inverter:
+from Gates.Gate import Gate
+
+
+class Inverter (Gate):
 
     def __init__(self, input_value: int):
         self.__input = input_value
