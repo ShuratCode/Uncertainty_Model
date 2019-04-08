@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from Gates.Inverter import Inverter
+from Gates.InverterGate import Inverter
 
 
 class TestInverter(TestCase):
