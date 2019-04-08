@@ -1,6 +1,6 @@
 class Inverter:
 
-    def __init__(self, input_value):
+    def __init__(self, input_value: int):
         self.__input = input_value
         self.__calculate_output()
 
