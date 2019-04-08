@@ -38,7 +38,7 @@ class System:
         :param file_content: list of the parameters of the system model. the output of __read_file method
         :return: the index of the next parameter in the list - inputs
         """
-        if file_content[0] is not "":
+        if file_content[0] != "":
             self.system_name = file_content[0]
             return 1
         else:

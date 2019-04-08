@@ -5,7 +5,7 @@ class Inverter:
         self.__calculate_output()
 
     def __calculate_output(self):
-        if self.__input is 1:
+        if self.__input == 1:
             self.__output = 0
         else:
             self.__output = 1
