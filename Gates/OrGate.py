@@ -1,17 +1,17 @@
 from Gates.Gate import Gate
 
 
-class AndGate (Gate):
+class OrGate(Gate):
 
     def __init__(self, inputs: dict):
         self.__inputs = inputs
         self.__calculate_output()
 
     def __calculate_output(self):
-        value = 1
+        value = 0
         for input_value in self.__inputs.values():
-            if input_value == 0:
-                value = 0
+            if input_value == 1:
+                value = 1
                 break
         self.__output = value
 
@@ -27,4 +27,3 @@ class AndGate (Gate):
     def set_input(self, index: str, value: int):
         self.__inputs[index] = value
         self.__calculate_output()
-
