@@ -1,29 +1,30 @@
+from Gates.AndGate import AndGate
 from Gates.Gate import Gate
-from Gates.OrGate import OrGate
 
 
-class NorGate(Gate):
+class NandGate(Gate):
 
     def __init__(self, inputs: dict):
-        self.__or_gate = OrGate(inputs)
+        self.__and_gate = AndGate(inputs)
         self.__calculate_output()
 
     def __calculate_output(self):
-        value = self.__or_gate.get_output()
-        if value == 1:
-            self.__output = 0
+        value = self.__and_gate.get_output()
         if value == 0:
             self.__output = 1
+        if value == 1:
+            self.__output = 0
 
     def get_output(self):
         return self.__output
 
     def get_inputs(self):
-        return self.__or_gate.get_inputs()
+        return self.__and_gate.get_inputs()
 
     def get_input(self, key: str):
-        return self.__or_gate.get_input(key)
+        return self.__and_gate.get_input(key)
 
     def set_input(self, key: str, value: int):
-        self.__or_gate.set_input(key, value)
+        self.__and_gate.set_input(key, value)
         self.__calculate_output()
+

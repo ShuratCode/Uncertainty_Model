@@ -21,9 +21,9 @@ class OrGate(Gate):
     def get_inputs(self):
         return self.__inputs
 
-    def get_input(self, index: str):
-        return self.__inputs.get(index)
+    def get_input(self, key: str):
+        return self.__inputs.get(key)
 
-    def set_input(self, index: str, value: int):
-        self.__inputs[index] = value
+    def set_input(self, key: str, value: int):
+        self.__inputs[key] = value
         self.__calculate_output()
