@@ -9,8 +9,7 @@ class AndGate (Gate):
 
     def __calculate_output(self):
         value = 1
-        for index in range(0, len(self.__inputs)):
-            input_value = self.__inputs[index]
+        for input_value in self.__inputs.values():
             if input_value == 0:
                 value = 0
                 break
@@ -23,8 +22,9 @@ class AndGate (Gate):
         return self.__inputs
 
     def get_input(self, index: int):
-        return self.__inputs[index]
+        return self.__inputs.get(index)
 
     def set_input(self, index: int, value: int):
         self.__inputs[index] = value
+        self.__calculate_output()
 

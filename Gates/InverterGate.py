@@ -21,3 +21,4 @@ class Inverter (Gate):
 
     def set_input(self, input_value):
         self.__input = input_value
+        self.__calculate_output()
