@@ -3,9 +3,10 @@ from Gates.Gate import Gate
 
 class Inverter (Gate):
 
-    def __init__(self, input_value: int):
+    def __init__(self, input_value: int, gate_name: str = ""):
         self.__input = input_value
         self.__calculate_output()
+        self.__gate = gate_name
 
     def __calculate_output(self):
         if self.__input == 1:
@@ -22,3 +23,6 @@ class Inverter (Gate):
     def set_input(self, input_value):
         self.__input = input_value
         self.__calculate_output()
+
+    def gat_name(self):
+        return self.__name

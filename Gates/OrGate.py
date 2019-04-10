@@ -3,9 +3,10 @@ from Gates.Gate import Gate
 
 class OrGate(Gate):
 
-    def __init__(self, inputs: dict):
+    def __init__(self, inputs: dict, gate_name: str = ""):
         self.__inputs = inputs
         self.__calculate_output()
+        self.__name = gate_name
 
     def __calculate_output(self):
         value = 0
@@ -27,3 +28,6 @@ class OrGate(Gate):
     def set_input(self, key: str, value: int):
         self.__inputs[key] = value
         self.__calculate_output()
+
+    def get_name(self):
+        return self.__name

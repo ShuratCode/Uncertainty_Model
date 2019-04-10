@@ -1,11 +1,12 @@
 from Gates.Gate import Gate
 
 
-class BufferGate (Gate):
+class BufferGate(Gate):
 
-    def __init__(self, input_value: int):
+    def __init__(self, input_value: int, gate_name: str = ""):
         self.__input = input_value
         self.__calculate_output()
+        self.__name = gate_name
 
     def __calculate_output(self):
         if self.__input == 0:
@@ -19,3 +20,6 @@ class BufferGate (Gate):
 
     def get_output(self):
         return self.__output
+
+    def get_name(self):
+        return self.__name
