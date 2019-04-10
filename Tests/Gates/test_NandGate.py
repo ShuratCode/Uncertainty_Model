@@ -7,8 +7,8 @@ class TestNandGate(TestCase):
 
     def test_nand_two_input_1(self):
         inputs = {'i1': 1, 'i2': 1}
-        Nand_gate = NandGate(inputs)
-        self.assertEqual(Nand_gate.get_output(), 0)
+        nand_gate = NandGate(inputs)
+        self.assertEqual(nand_gate.get_output(), 0)
 
     def test_and_simple_input_0(self):
         inputs = {'i1': 0, 'i2': 0}

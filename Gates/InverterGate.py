@@ -3,26 +3,27 @@ from Gates.Gate import Gate
 
 class Inverter (Gate):
 
-    def __init__(self, input_value: int, gate_name: str = ""):
-        self.__input = input_value
-        self.__calculate_output()
-        self.__gate = gate_name
+    def __init__(self, input_value: dict, gate_name: str = ""):
+        self.inputs = input_value
+        self.calculate_output()
+        self.name = gate_name
 
-    def __calculate_output(self):
-        if self.__input == 1:
-            self.__output = 0
+    def calculate_output(self):
+        value = list(self.inputs.values())[0]
+        if value == 1:
+            self.output = 0
         else:
-            self.__output = 1
+            self.output = 1
 
     def get_input(self):
-        return self.__input
+        return self.inputs
 
     def get_output(self):
-        return self.__output
+        return self.output
 
-    def set_input(self, input_value):
-        self.__input = input_value
-        self.__calculate_output()
+    def set_input(self, input_value: dict):
+        self.inputs = input_value
+        self.calculate_output()
 
     def gat_name(self):
-        return self.__name
+        return self.name

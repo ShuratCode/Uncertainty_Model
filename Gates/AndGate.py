@@ -4,31 +4,31 @@ from Gates.Gate import Gate
 class AndGate (Gate):
 
     def __init__(self, inputs: dict, gate_name: str = ""):
-        self.__inputs = inputs
-        self.__calculate_output()
-        self.__name = gate_name
+        self.inputs = inputs
+        self.calculate_output()
+        self.name = gate_name
 
-    def __calculate_output(self):
+    def calculate_output(self):
         value = 1
-        for input_value in self.__inputs.values():
+        for input_value in self.inputs.values():
             if input_value == 0:
                 value = 0
                 break
-        self.__output = value
+        self.output = value
 
     def get_output(self):
-        return self.__output
+        return self.output
 
     def get_inputs(self):
-        return self.__inputs
+        return self.inputs
 
     def get_input(self, key: str):
-        return self.__inputs.get(key)
+        return self.inputs.get(key)
 
     def set_input(self, key: str, value: int):
-        self.__inputs[key] = value
-        self.__calculate_output()
+        self.inputs[key] = value
+        self.calculate_output()
 
     def get_name(self):
-        return self.__name
+        return self.name
 
