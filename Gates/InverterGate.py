@@ -1,7 +1,7 @@
 from Gates.Gate import Gate
 
 
-class Inverter (Gate):
+class InverterGate (Gate):
 
     def __init__(self, input_value: dict, gate_name: str = ""):
         self.inputs = input_value
