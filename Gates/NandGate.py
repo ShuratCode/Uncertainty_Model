@@ -6,10 +6,10 @@ class NandGate(Gate):
 
     def __init__(self, inputs: dict, gate_name: str = ""):
         self.__and_gate = AndGate(inputs)
-        self.calculate_output()
         self.name = gate_name
 
     def calculate_output(self):
+        self.__and_gate.calculate_output()
         value = self.__and_gate.get_output()
         if value == 0:
             self.output = 1
@@ -27,7 +27,6 @@ class NandGate(Gate):
 
     def set_input(self, key: str, value: int):
         self.__and_gate.set_input(key, value)
-        self.calculate_output()
 
     def get_name(self):
         return self.name

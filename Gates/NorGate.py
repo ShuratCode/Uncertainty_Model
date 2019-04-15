@@ -6,10 +6,10 @@ class NorGate(Gate):
 
     def __init__(self, inputs: dict, gate_name: str = ""):
         self.__or_gate = OrGate(inputs)
-        self.calculate_output()
         self.name = gate_name
 
     def calculate_output(self):
+        self.__or_gate.calculate_output()
         value = self.__or_gate.get_output()
         if value == 1:
             self.output = 0
@@ -27,7 +27,6 @@ class NorGate(Gate):
 
     def set_input(self, key: str, value: int):
         self.__or_gate.set_input(key, value)
-        self.calculate_output()
 
     def get_name(self):
         return self.name

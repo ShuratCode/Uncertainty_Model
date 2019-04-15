@@ -5,7 +5,6 @@ class AndGate (Gate):
 
     def __init__(self, inputs: dict, gate_name: str = ""):
         self.inputs = inputs
-        self.calculate_output()
         self.name = gate_name
 
     def calculate_output(self):
@@ -27,7 +26,6 @@ class AndGate (Gate):
 
     def set_input(self, key: str, value: int):
         self.inputs[key] = value
-        self.calculate_output()
 
     def get_name(self):
         return self.name
