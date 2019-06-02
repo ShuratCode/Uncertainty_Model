@@ -6,6 +6,7 @@ class NorGate(Gate):
 
     def __init__(self, inputs: dict, gate_name: str = ""):
         self.__or_gate = OrGate(inputs)
+        self.inputs = inputs
         self.name = gate_name
 
     def calculate_output(self):

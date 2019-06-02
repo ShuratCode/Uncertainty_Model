@@ -22,11 +22,11 @@ class System:
     """
 
     def __init__(self, path_to_file: str):
-        self.outputs = None
-        self.inputs = None
+        self.outputs = None  # Dic mapping name of system (o1, o2 etc.) to the value (0 or 1). None at beginning
+        self.inputs = None  # Dic mapping name of system (i1 i2 etc.) to the value (0 or 1). None at beginning
         self.system_name = None
-        self.gates = None
-        self.zeds = {}
+        self.gates = None  # Dic mapping name of gate (e.g. "gate27") to logic gates
+        self.zeds = {}  # Dic mapping the inner wires of the system
         if os.path.isfile(path_to_file) and SYSTEM_FILE_TYPE in path_to_file:
             file = open(path_to_file, 'r')
             file_content = self.read_file(file)
@@ -34,7 +34,76 @@ class System:
             self.init_inputs_dict(file_content)
             self.init_outputs_dict(file_content)
             self.init_gates_dict(file_content)
-            print("Done")
+
+    @staticmethod
+    def parse_obs_files(obs_file_path):
+        """
+        Reads an .obs file and extracts from each line the inputs and outputs.
+        :param obs_file_path: Path to the .obs file
+        :return: a dictionary with the different input and output values.
+        """
+        obs_dict = {}
+        with open(obs_file_path, 'r') as obs_file:
+            for line in obs_file:
+                index = line.split(',')[1]
+                obs_dict[index] = {'inputs': {}, 'outputs': {}}
+                wires = line.split('[')[1].split(']')[0]
+                wires = wires.split(',')
+                for wire in wires:
+                    if wire[0] == '-':  # it's a 0
+                        wire = wire.strip('-')
+                        if wire[0] == 'i':  # it's an output
+                            obs_dict[index]['inputs'][wire] = 0
+                        else:
+                            obs_dict[index]['outputs'][wire] = 0
+                    else:  # it's a 1
+                        if wire[0] == 'i':  # it's an output
+                            obs_dict[index]['inputs'][wire] = 1
+                        else:
+                            obs_dict[index]['outputs'][wire] = 1
+
+        return obs_dict
+
+    def calc_system_output(self, input_values):
+        """
+        Function that calculates the expected outputs given input values.
+        :param input_values: A dictionary mapping input index to value, i.e i1 -> 0
+        """
+
+        self.inputs = input_values
+        for out in self.outputs:
+            gate_name = self.extract_correct_gate(out)
+            self.outputs[out] = self.calc_gate_output(gate_name)
+
+    def calc_gate_output(self, gate_name):
+        """
+        Recursively calculate the gate's output.
+        :param gate_name: name of the gate.
+        :return: the gate's output.
+        """
+
+        gate = self.gates[gate_name]['gate']
+
+        for wire, val in gate.inputs.items():  # Iterate through all required inputs to the gate
+            if wire[0] == 'i':  # it's an input, so it must already have a value.
+                val = self.inputs[wire]
+            else:  # it's a z, therefor we must check if we already calculated it. If not, calculate and update it.
+                if self.zeds[wire] is not None:  # we have already calculated it.
+                    val = self.zeds[wire]
+                else:
+                    inner_gate_name = self.extract_correct_gate(wire)
+                    val = self.calc_gate_output(inner_gate_name)
+                    self.zeds[wire] = val
+
+            gate.inputs[wire] = val
+
+        gate.calculate_output()
+        return gate.get_output()
+
+    def extract_correct_gate(self, desired_output: str):
+        for gate_name, gate in self.gates.items():
+            if gate['output'] == desired_output:  # This gate's output is the required wire
+                return gate_name
 
     @staticmethod
     def read_file(file):
@@ -113,9 +182,9 @@ class System:
                 gate_inputs = self.create_gate_inputs_dict(gate_params, 1)
             gate = self.build_gate(gate_type, gate_inputs)
             if gate is not None:
-                self.gates[gate_name] = [gate, gate_output]
+                self.gates[gate_name] = {'gate': gate, 'output': gate_output}
             else:
-                raise Exception("Gate type: " + gate_type + " is not recognize")
+                raise Exception("Gate type: " + gate_type + " is not recognized")
 
     @staticmethod
     def parse_get_type(logic_type: str):
@@ -132,7 +201,6 @@ class System:
             return gate_type, num_of_inputs
         else:
             return logic_type, None
-
 
     @staticmethod
     def create_gate_inputs_dict(gate_params: list, number_of_inputs: int):
@@ -158,3 +226,5 @@ class System:
     def clean_gates_def(gates_def: str):
         gates_def = gates_def[1:-1]
         return gates_def.split('],')
+
+
