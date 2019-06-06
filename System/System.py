@@ -1,5 +1,6 @@
 import os.path
 import re
+import numpy as np
 
 from Gates.AndGate import AndGate
 from Gates.BufferGate import BufferGate
@@ -14,6 +15,7 @@ SYSTEM_NAME_INDEX: int = 0
 INPUTS_INDEX: int = 1
 OUTPUTS_INDEX: int = 2
 GATES_INDEX: int = 3
+OUTPUT_PROBABILITY = 0.8
 
 
 class System:
@@ -64,21 +66,23 @@ class System:
 
         return obs_dict
 
-    def calc_system_output(self, input_values):
+    def calc_system_output(self, input_values, faulty_gates=None):
         """
         Function that calculates the expected outputs given input values.
-        :param input_values: A dictionary mapping input index to value, i.e i1 -> 0
+        :param input_values: A dictionary mapping input index to value, i.e o1 -> 0
+        :param faulty_gates: A list of gates that are faulty, i.e. output opposite values (e.g. 1 instead of 0).
         """
 
         self.inputs = input_values
         for out in self.outputs:
             gate_name = self.extract_correct_gate(out)
-            self.outputs[out] = self.calc_gate_output(gate_name)
+            self.outputs[out] = self.calc_gate_output(gate_name, faulty_gates)
 
-    def calc_gate_output(self, gate_name):
+    def calc_gate_output(self, gate_name, faulty_gates):
         """
         Recursively calculate the gate's output.
         :param gate_name: name of the gate.
+        :param faulty_gates: A list of gates that are faulty, i.e. output opposite values (e.g. 1 instead of 0).
         :return: the gate's output.
         """
 
@@ -92,13 +96,22 @@ class System:
                     val = self.zeds[wire]
                 else:
                     inner_gate_name = self.extract_correct_gate(wire)
-                    val = self.calc_gate_output(inner_gate_name)
+                    val = self.calc_gate_output(inner_gate_name, faulty_gates)
+                    if faulty_gates is not None and inner_gate_name in faulty_gates:
+                        val = self.flip_bit(val)
                     self.zeds[wire] = val
 
             gate.inputs[wire] = val
 
         gate.calculate_output()
         return gate.get_output()
+
+    @staticmethod
+    def flip_bit(val):
+        if val == 1:
+            return 0
+        else:
+            return 1
 
     def extract_correct_gate(self, desired_output: str):
         for gate_name, gate in self.gates.items():
@@ -227,4 +240,34 @@ class System:
         gates_def = gates_def[1:-1]
         return gates_def.split('],')
 
+    @staticmethod
+    def generate_output_probabilities(observed_output):
+        """
+        Receives the observed output and generates a dictionary where the keys are a combination of outputs and the
+        values are the probability for such an output.
+        :param observed_output: The observed output (e.g. o1 = 0, o2 = 1, o3 = 1)
+        :return: A dictionary with all the combinations for outputs and their probabilities. key: a string e.g 00010,
+        the value is a floating point representing the probability of this output.
+        """
 
+        combo_dict = {}
+        output_num = len(observed_output)
+        combo_num = pow(2, output_num)
+        for i in range(0, combo_num):
+            binary = np.binary_repr(i, width=output_num)
+            probability = 1
+            index = 0
+            for char in binary:
+                index += 1
+                if int(char) == observed_output['o'+str(index)]:
+                    probability *= OUTPUT_PROBABILITY
+                else:
+                    probability *= 1-OUTPUT_PROBABILITY
+            combo_dict[binary] = probability
+
+        return combo_dict
+
+    def clean_system(self):
+
+        for zed in self.zeds:
+            self.zeds[zed] = None
