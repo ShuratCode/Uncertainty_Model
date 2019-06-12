@@ -1,5 +1,6 @@
 from unittest import TestCase
 from System.System import System
+from System.Diagnoser import Diagnoser
 
 
 class TestSystem(TestCase):
@@ -78,4 +79,10 @@ class TestSystem(TestCase):
         self.system.calc_system_output({'i1': 1, 'i2': 1, 'i3': 1})
         self.assertEqual(self.system.outputs['o1'], 1)
 
+    def test_diagnoser_simple(self):
+        self.system.calc_system_output({'i1': 0, 'i2': 0, 'i3': 0})
+        diag = Diagnoser(self.system)
+        outputs = self.system.generate_output_probabilities(self.system.outputs)
+        results = diag.generate_system_diagnosis(outputs)
 
+        print('wasdasd')

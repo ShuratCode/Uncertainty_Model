@@ -78,6 +78,8 @@ class System:
             gate_name = self.extract_correct_gate(out)
             self.outputs[out] = self.calc_gate_output(gate_name, faulty_gates)
 
+        return self.outputs
+
     def calc_gate_output(self, gate_name, faulty_gates):
         """
         Recursively calculate the gate's output.
@@ -97,13 +99,13 @@ class System:
                 else:
                     inner_gate_name = self.extract_correct_gate(wire)
                     val = self.calc_gate_output(inner_gate_name, faulty_gates)
-                    if faulty_gates is not None and inner_gate_name in faulty_gates:
-                        val = self.flip_bit(val)
                     self.zeds[wire] = val
 
             gate.inputs[wire] = val
 
         gate.calculate_output()
+        if faulty_gates is not None and gate_name in faulty_gates:
+            gate.output = self.flip_bit(gate.output)
         return gate.get_output()
 
     @staticmethod
