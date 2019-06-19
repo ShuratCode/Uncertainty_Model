@@ -1,4 +1,4 @@
-MALFUNCTION_PROBABILITY = 0.05
+MALFUNCTION_PROBABILITY = 0.2
 
 
 class Diagnoser:
@@ -11,9 +11,10 @@ class Diagnoser:
         """
         self.system = system
         self.expected_output = system.outputs  # The correct output of the system
-        self.final_diagnosis = {}
+        self.final_diagnosis = None
         self.output_probabilities = None
         self.faulty_combinations = {}
+        self.curr_max_probability = 0
 
     def generate_system_diagnosis(self, output_probabilities):
         """
@@ -23,18 +24,28 @@ class Diagnoser:
         :return: The components most likely to be faulty.
         """
         self.output_probabilities = output_probabilities
+        sorted_outputs = [(combo, prob) for combo, prob in self.output_probabilities.items()]
+        sorted_outputs.sort(key=lambda k: k[1], reverse=True)
 
-        for output, probability in output_probabilities.items():  # iterate through all possible outputs.
-            self.faulty_combinations[output] = set()
-            self.diagnose(output)
+        for output in sorted_outputs:  # iterate through all possible outputs.
+            self.faulty_combinations[output[0]] = set()
+            self.diagnose(output[0])
 
-        return self.sorted_diagnosis()
+        return self.final_diagnosis
 
     def sorted_diagnosis(self):
 
         sorted_diag = [(combo, v['probability'], v['output']) for combo, v in self.final_diagnosis.items()]
 
         sorted_diag.sort(key=lambda k: k[1], reverse=True)
+
+        top = 3
+        print("*** System Diagnosis: ***")
+        print(f"Top {top} most probable faults:")
+        for i in range(top):
+            print(f'1) {sorted_diag[i][0]} , with a probability of {round(sorted_diag[i][1], 3)} and with an output of'
+                  f' {self.stringify_output(sorted_diag[i][2])}')
+
         return sorted_diag
 
     def stringify_output(self, output=None):
@@ -54,7 +65,11 @@ class Diagnoser:
         num_of_components = len(self.system.gates)
         output_dict = self.dictify_output_string(output)
         for n in range(0, num_of_components + 1):
-            self.detect_faulty_gates(max_gates=n, faulty_output=output_dict, faulty_gates=[])
+            if self.should_continue(output, n):
+                #print(f'n = {n}')
+                self.detect_faulty_gates(max_gates=n, faulty_output=output_dict, faulty_gates=[])
+            else:
+                break
 
     def detect_faulty_gates(self, max_gates, faulty_output, faulty_gates):
         """
@@ -71,30 +86,38 @@ class Diagnoser:
         self.system.clean_system()
         calculated_output = self.system.calc_system_output(self.system.inputs, faulty_gates)
 
-        if self.is_superset(faulty_gates, faulty_output):
-            return None
-        if self.stringify_output(calculated_output) == self.stringify_output(faulty_output):
-            self.update_diagnosis(faulty_gates, faulty_output)  # The correct output has been found
-        if max_gates == 0:  # We reached the max number of gates
-            return None
-        else:  # We continue to try and find a combination
-            for gate_name in self.system.gates:
-                if gate_name not in faulty_gates:  # this gate hasn't been checked yet
-                    self.detect_faulty_gates(max_gates - 1, faulty_output, faulty_gates + [gate_name])
+        if not self.is_superset(faulty_gates, faulty_output):  # If it's a superset of an existing combo, skip it
+            if self.stringify_output(calculated_output) == self.stringify_output(faulty_output):
+                self.update_diagnosis(faulty_gates, faulty_output)  # The correct output has been found
+            elif max_gates > 0:  # We continue to try and find a combination
+                for gate_name in self.system.gates:
+                    if gate_name not in faulty_gates:  # this gate hasn't been checked yet
+                        self.detect_faulty_gates(max_gates - 1, faulty_output, faulty_gates + [gate_name])
 
     def update_diagnosis(self, new_faulty_gates, faulty_output):
         try:
             new_faulty_gates.sort()
-            gate_tuple = tuple(new_faulty_gates)
             output_string = self.stringify_output(faulty_output)
-            probability = pow(MALFUNCTION_PROBABILITY, len(new_faulty_gates)) * \
-                          pow(1 - MALFUNCTION_PROBABILITY, len(self.system.gates) - len(new_faulty_gates)) \
-                          * self.output_probabilities[output_string]
-
-            self.final_diagnosis[gate_tuple] = {'probability': probability, 'output': faulty_output}
+            probability = self.prob_of_n_faulty_gates(len(new_faulty_gates)) * self.output_probabilities[output_string]
+            if probability > self.curr_max_probability:
+                self.curr_max_probability = probability
+                faulty = self.faulty_gates_to_tuple(new_faulty_gates)
+                self.final_diagnosis = \
+                    {'faulty gates': faulty, 'probability': probability, 'With an output of ': faulty_output}
             self.faulty_combinations[output_string].add(frozenset(new_faulty_gates))
         except AttributeError:
             print(new_faulty_gates)
+
+    def prob_of_n_faulty_gates(self, faulty_gates_num):
+        return pow(MALFUNCTION_PROBABILITY, faulty_gates_num) * \
+               pow(1 - MALFUNCTION_PROBABILITY, len(self.system.gates) - faulty_gates_num)
+
+    @staticmethod
+    def faulty_gates_to_tuple(new_faulty_gates):
+        if len(new_faulty_gates) > 0:
+            return tuple(new_faulty_gates)
+        else:
+            return 'No faulty components',
 
     @staticmethod
     def dictify_output_string(output):
@@ -107,5 +130,21 @@ class Diagnoser:
         faulty_gates.sort()
         faulty_set = frozenset(faulty_gates)
         for combo in self.faulty_combinations[self.stringify_output(output)]:
-            if combo.issubset(faulty_set) and len(combo) > 0:
+            if combo.issubset(faulty_set) and len(combo) > 0 and len(faulty_gates) > 0:
                 return True
+
+        return False
+
+    def should_continue(self, output, n):
+        """
+        Tests if it's worth trying to find a combination of faulty components. Basically calculates if the probability
+        is already too low to be worth trying.
+        :param output: The output being checked
+        :param n: Current number of faulty components that will be in the faulty set
+        :return: True if it's worth trying, otherwise false.
+        """
+        output_prob = self.output_probabilities[output]
+        faulty_prob = self.prob_of_n_faulty_gates(n)
+        if self.curr_max_probability > output_prob * faulty_prob:
+            return False
+        return True

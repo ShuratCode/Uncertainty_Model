@@ -7,6 +7,7 @@ class NandGate(Gate):
     def __init__(self, inputs: dict, gate_name: str = ""):
         self.__and_gate = AndGate(inputs)
         self.name = gate_name
+        self.inputs = inputs
 
     def calculate_output(self):
         self.__and_gate.calculate_output()

@@ -83,6 +83,9 @@ class TestSystem(TestCase):
         self.system.calc_system_output({'i1': 0, 'i2': 0, 'i3': 0})
         diag = Diagnoser(self.system)
         outputs = self.system.generate_output_probabilities(self.system.outputs)
-        results = diag.generate_system_diagnosis(outputs)
+        diag.generate_system_diagnosis(outputs)
+        print(diag.final_diagnosis)
 
-        print('wasdasd')
+        self.assertEqual(diag.final_diagnosis['faulty gates'], ('No faulty components',))
+        self.assertEqual(diag.final_diagnosis['probability'], 0.29491200000000006)
+        self.assertEqual(diag.final_diagnosis['With an output of '], {'o1': 0})
