@@ -15,6 +15,8 @@ class Diagnoser:
         self.output_probabilities = None
         self.faulty_combinations = {}
         self.curr_max_probability = 0
+        self.found_outputs = {}
+        self.detected = False
 
     def generate_system_diagnosis(self, output_probabilities):
         """
@@ -31,6 +33,8 @@ class Diagnoser:
             self.faulty_combinations[output[0]] = set()
             self.diagnose(output[0])
 
+        max_possible_probability = pow((1-MALFUNCTION_PROBABILITY), len(self.system.gates)) * sorted_outputs[0][1]
+        self.final_diagnosis['probability'] = self.final_diagnosis['probability'] / max_possible_probability
         return self.final_diagnosis
 
     def sorted_diagnosis(self):
@@ -64,9 +68,13 @@ class Diagnoser:
         """
         num_of_components = len(self.system.gates)
         output_dict = self.dictify_output_string(output)
+        self.detected = False
+        if output in self.found_outputs:
+            self.update_diagnosis(self.found_outputs[output], output_dict)
         for n in range(0, num_of_components + 1):
+            if self.detected:
+                break
             if self.should_continue(output, n):
-                #print(f'n = {n}')
                 self.detect_faulty_gates(max_gates=n, faulty_output=output_dict, faulty_gates=[])
             else:
                 break
@@ -83,30 +91,29 @@ class Diagnoser:
         :return: All possible diagnosis and the probability for them.
         """
 
-        self.system.clean_system()
-        calculated_output = self.system.calc_system_output(self.system.inputs, faulty_gates)
-
-        if not self.is_superset(faulty_gates, faulty_output):  # If it's a superset of an existing combo, skip it
-            if self.stringify_output(calculated_output) == self.stringify_output(faulty_output):
-                self.update_diagnosis(faulty_gates, faulty_output)  # The correct output has been found
-            elif max_gates > 0:  # We continue to try and find a combination
-                for gate_name in self.system.gates:
-                    if gate_name not in faulty_gates:  # this gate hasn't been checked yet
-                        self.detect_faulty_gates(max_gates - 1, faulty_output, faulty_gates + [gate_name])
+        if not self.detected:
+            self.system.clean_system()
+            calculated_output = self.system.calc_system_output(self.system.inputs, faulty_gates)
+            self.update_found_outputs(calculated_output, faulty_gates)
+            if not self.is_superset(faulty_gates, faulty_output):  # If it's a superset of an existing combo, skip it
+                if self.stringify_output(calculated_output) == self.stringify_output(faulty_output):
+                    self.update_diagnosis(faulty_gates, faulty_output)  # The correct output has been found
+                    self.detected = True
+                elif max_gates > 0:  # We continue to try and find a combination
+                    for gate_name in self.system.gates:
+                        if gate_name not in faulty_gates:  # this gate hasn't been checked yet
+                            self.detect_faulty_gates(max_gates - 1, faulty_output, faulty_gates + [gate_name])
 
     def update_diagnosis(self, new_faulty_gates, faulty_output):
-        try:
-            new_faulty_gates.sort()
-            output_string = self.stringify_output(faulty_output)
-            probability = self.prob_of_n_faulty_gates(len(new_faulty_gates)) * self.output_probabilities[output_string]
-            if probability > self.curr_max_probability:
-                self.curr_max_probability = probability
-                faulty = self.faulty_gates_to_tuple(new_faulty_gates)
-                self.final_diagnosis = \
-                    {'faulty gates': faulty, 'probability': probability, 'With an output of ': faulty_output}
-            self.faulty_combinations[output_string].add(frozenset(new_faulty_gates))
-        except AttributeError:
-            print(new_faulty_gates)
+        new_faulty_gates.sort()
+        output_string = self.stringify_output(faulty_output)
+        probability = self.prob_of_n_faulty_gates(len(new_faulty_gates)) * self.output_probabilities[output_string]
+        if probability > self.curr_max_probability:
+            self.curr_max_probability = probability
+            faulty = self.faulty_gates_to_tuple(new_faulty_gates)
+            self.final_diagnosis = \
+                {'faulty gates': faulty, 'probability': probability, 'With an output of ': faulty_output}
+        self.faulty_combinations[output_string].add(frozenset(new_faulty_gates))
 
     def prob_of_n_faulty_gates(self, faulty_gates_num):
         return pow(MALFUNCTION_PROBABILITY, faulty_gates_num) * \
@@ -145,6 +152,22 @@ class Diagnoser:
         """
         output_prob = self.output_probabilities[output]
         faulty_prob = self.prob_of_n_faulty_gates(n)
-        if self.curr_max_probability > output_prob * faulty_prob:
+        maximal_prob = output_prob * faulty_prob
+
+        if self.curr_max_probability > maximal_prob:
             return False
         return True
+
+    def update_found_outputs(self, calculated_output, faulty_gates):
+        """
+        A function for updating the diagnosers output dictionary. Used for instant lookup later.
+        :param calculated_output:
+        :param faulty_gates:
+        :return:
+        """
+        out_string = self.stringify_output(calculated_output)
+        if out_string in self.found_outputs:
+            if len(self.found_outputs[out_string]) > len(faulty_gates):
+                self.found_outputs[out_string] = faulty_gates
+        else:
+            self.found_outputs[out_string] = faulty_gates

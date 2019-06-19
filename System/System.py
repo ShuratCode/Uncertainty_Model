@@ -72,7 +72,7 @@ class System:
         :param input_values: A dictionary mapping input index to value, i.e o1 -> 0
         :param faulty_gates: A list of gates that are faulty, i.e. output opposite values (e.g. 1 instead of 0).
         """
-
+        self.clean_system()
         self.inputs = input_values
         for out in self.outputs:
             gate_name = self.extract_correct_gate(out)
