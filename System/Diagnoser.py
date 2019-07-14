@@ -33,7 +33,7 @@ class Diagnoser:
             self.faulty_combinations[output[0]] = set()
             self.diagnose(output[0])
 
-        max_possible_probability = pow((1-MALFUNCTION_PROBABILITY), len(self.system.gates)) * sorted_outputs[0][1]
+        max_possible_probability = pow((1 - MALFUNCTION_PROBABILITY), len(self.system.gates)) * sorted_outputs[0][1]
         self.final_diagnosis['probability'] = self.final_diagnosis['probability'] / max_possible_probability
         return self.final_diagnosis
 
@@ -116,6 +116,10 @@ class Diagnoser:
         self.faulty_combinations[output_string].add(frozenset(new_faulty_gates))
 
     def prob_of_n_faulty_gates(self, faulty_gates_num):
+        """
+
+        0.2^(number of faulty gates) * 0.8^(number of healthy gates)
+        """
         return pow(MALFUNCTION_PROBABILITY, faulty_gates_num) * \
                pow(1 - MALFUNCTION_PROBABILITY, len(self.system.gates) - faulty_gates_num)
 

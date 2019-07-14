@@ -46,10 +46,15 @@ class System:
         """
         obs_dict = {}
         with open(obs_file_path, 'r') as obs_file:
-            for line in obs_file:
+            file_str = obs_file.read()
+            file_str = file_str.split('.')
+            for line in file_str:
+                if len(line) <= 1:
+                    continue
                 index = line.split(',')[1]
                 obs_dict[index] = {'inputs': {}, 'outputs': {}}
                 wires = line.split('[')[1].split(']')[0]
+                wires = wires.replace('\n', '')
                 wires = wires.split(',')
                 for wire in wires:
                     if wire[0] == '-':  # it's a 0
@@ -94,8 +99,10 @@ class System:
             if wire[0] == 'i':  # it's an input, so it must already have a value.
                 val = self.inputs[wire]
             else:  # it's a z, therefor we must check if we already calculated it. If not, calculate and update it.
-                if self.zeds[wire] is not None:  # we have already calculated it.
+                if wire[0] == 'z' and self.zeds[wire] is not None:  # we have already calculated it.
                     val = self.zeds[wire]
+                elif wire[0] == 'o' and self.outputs[wire] is not None:
+                    val = self.outputs[wire]
                 else:
                     inner_gate_name = self.extract_correct_gate(wire)
                     val = self.calc_gate_output(inner_gate_name, faulty_gates)

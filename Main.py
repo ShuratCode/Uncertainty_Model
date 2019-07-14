@@ -17,7 +17,7 @@ def calc_bit_disparity(output_1, output_2):
 
 if __name__ == '__main__':
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    sys_name = '74182'
+    sys_name = '74181'
     path = os.path.join(ROOT_DIR, f'Resources\\system\\{sys_name}.sys')
     system = System(path)
     obs_path = os.path.join(ROOT_DIR, f'Resources\\iscas\\{sys_name}_iscas85.obs')
@@ -42,9 +42,9 @@ if __name__ == '__main__':
             expected = diagnoser.stringify_output(output=expected)
             observed_output = diagnoser.stringify_output(observed_output)
             bit_disparity = calc_bit_disparity(observed_output, expected)
-            print(f'Observed Output: {observed_output}')
-            print(f'Expected Output: {expected}')
-            print(diagnosis)
+            #print(f'Observed Output: {observed_output}')
+            #print(f'Expected Output: {expected}')
+            #print(diagnosis)
             inputs = '[' + ','.join(diagnoser.stringify_output(inputs)) + ']'
             outputs = '[' + ','.join(observed_output) + ']'
             expected = '[' + ','.join(expected) + ']'
